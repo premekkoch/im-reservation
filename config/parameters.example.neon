@@ -1,0 +1,6 @@
+parameters:
+	db:
+		host: '127.0.0.1'
+		db: database name
+		user: username
+		password: password

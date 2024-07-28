@@ -1,0 +1,15 @@
+services:
+	- App\Core\RouterFactory::createRouter
+	- App\Security\Authenticator
+
+extensions:
+	console: Contributte\Console\DI\ConsoleExtension(%consoleMode%)
+	migrations: Nextras\Migrations\Bridges\NetteDI\MigrationsExtension
+	dbal: Nextras\Dbal\Bridges\NetteDI\DbalExtension
+	nextras.orm: Nextras\Orm\Bridges\NetteDI\OrmExtension
+
+search:
+	-	in: %appDir%
+		classes:
+			- *Factory
+			- *Facade

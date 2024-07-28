@@ -1,0 +1,5 @@
+/.idea
+/.env
+/config/parameters.neon
+/temp
+/vendor
