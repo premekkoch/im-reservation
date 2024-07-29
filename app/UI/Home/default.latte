@@ -1,3 +1,18 @@
+{templateType App\UI\Home\HomeTemplate}
 {block title}IM reservation{/block}
 {block content}
+<h3>Filter:</h3>
+{control filterForm}
+<hr>
+<h3>Reservations for meeting room {$room->name}:</h3>
+<ul>
+{foreach $reservations as $reservation}
+    <li>
+        {$reservation->start|date:'j.n.Y H:i'} - {$reservation->stop|date:'H:i'}
+
+        <a n:if="$user->id === $reservation->user->id" n:href="Home:delete $reservation->id">Delete</a>
+    </li>
+{/foreach}
+</ul>
+
 <a n:href="Login:logout">Logout</a>
