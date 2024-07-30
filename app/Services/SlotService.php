@@ -32,11 +32,11 @@ final class SlotService
         return new DateInterval('PT' . $hour . 'H' . $minute . 'M');
     }
 
-    public function getStartSlots(DateTimeImmutable $date): array
+    public function getStartSlots(DateTimeImmutable $date, int $roomId): array
     {
         $date->setTime(00, 00, 00);
         $slots = $this->getSlotTable(self::FIRST_SLOT, self::TIME_TYPE_BEGIN);
-        $reservations = $this->orm->reservations->findBy(['workday' => $date]);
+        $reservations = $this->orm->reservations->findBy(['workday' => $date, 'room' => $roomId]);
 
         /** @var Reservation $reservation */
         foreach ($reservations as $reservation) {
@@ -48,20 +48,50 @@ final class SlotService
         return $slots;
     }
 
-    public function getNextSlots(DateTimeImmutable $date, int $startIndex): array
+    public function getNextSlots(DateTimeImmutable $date, int $roomId, int $startIndex): array
     {
+        if ($this->isSlotFree($date, $roomId, $startIndex) === false) {
+            return [];
+        }
+
         $date->setTime(00, 00, 00);
         $slots = $this->getSlotTable($startIndex, self::TIME_TYPE_END);
-        $reservations = $this->orm->reservations->findBy(['workday' => $date, 'slot >=' => $startIndex]);
 
-        /** @var Reservation $reservation */
-        foreach ($reservations as $reservation) {
-            if (isset($slots[$reservation->slot])) {
-                array_splice($slots, $reservation->slot - 1);
-            }
+        /** @var Reservation $nextReservation */
+        $nextReservation = $this->orm->reservations
+            ->findBy(['workday' => $date, 'room' => $roomId, 'slot>=' => $startIndex])
+            ->orderBy('slot')
+            ->limitBy(1)
+            ->fetch();
+
+        if ($nextReservation) {
+            $this->cropTable($slots, $nextReservation->slot);
         }
 
         return $slots;
+    }
+
+    public function isSlotFree(DateTimeImmutable $date, int $roomId, int $startIndex, ?int $stopIndex = null): bool
+    {
+        $slots = $this->getStartSlots($date, $roomId);
+
+        if ($stopIndex === null) {
+            return isset($slots[$startIndex]);
+        }
+
+        if (!isset($slots[$startIndex])) {
+            return false;
+        }
+
+        $slots = $this->getNextSlots($date, $roomId, $startIndex);
+
+        for ($i = $startIndex; $i <= $stopIndex; $i++) {
+            if (!isset($slots[$i])) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private function getSlotTable(int $startIndex, int $timeType): array
@@ -74,5 +104,16 @@ final class SlotService
         }
 
         return $slots;
+    }
+
+    private function cropTable(array &$slots, int $index): void
+    {
+        $maxIndex = max(array_keys($slots));
+
+        if ($index <= $maxIndex) {
+            for ($i = $index; $i <= $maxIndex; $i++) {
+                unset($slots[$i]);
+            }
+        }
     }
 }

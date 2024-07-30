@@ -1,6 +1,7 @@
 services:
 	- App\Core\RouterFactory::createRouter
 	- App\Security\Authenticator
+	- App\Services\SlotService
 
 extensions:
 	console: Contributte\Console\DI\ConsoleExtension(%consoleMode%)
