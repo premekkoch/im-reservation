@@ -14,5 +14,31 @@
     </li>
 {/foreach}
 </ul>
-
+<hr>
+<h3>New {$room->name} meeting room reservation on {$date|date:'j. n. Y'} </h3>
+{control reservationForm}
+<hr>
 <a n:href="Login:logout">Logout</a>
+
+<script type="application/javascript">
+    document.querySelectorAll('select[data-dependent]').forEach(function (main) {
+        main.addEventListener('change', function () {
+            let dependent = main.form[main.dataset.dependent];
+            let url = main.dataset.url;
+            fetch(url.replace(encodeURIComponent('#'), encodeURIComponent(main.value)))
+                .then(response => response.json())
+                .then(data => updateSelectbox(dependent, data));
+        });
+    });
+
+    function updateSelectbox(select, items)
+    {
+        select.innerHTML = '';
+        for (var id in items) {
+            var el = document.createElement('option');
+            el.setAttribute('value', id);
+            el.innerText = items[id];
+            select.appendChild(el);
+        }
+    }
+</script>
