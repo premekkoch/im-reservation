@@ -1,6 +1,7 @@
 Ideal Media reservation demo
 ============================
 
+For information about my method of developing the project (in Czech), go [here](docs/documentation.md).  
 
 Requirements
 ------------
