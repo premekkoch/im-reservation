@@ -4,7 +4,7 @@
 <h3>Filter:</h3>
 {control filterForm}
 <hr>
-<h3>Reservations for meeting room {$room->name}:</h3>
+<h3>Reservations for meeting room {$room->name} on {$date|date:'j. n. Y'}:</h3>
 <ul>
 {foreach $reservations as $reservation}
     <li>

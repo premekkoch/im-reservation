@@ -4,17 +4,18 @@ namespace App\UI\Home;
 
 use App\Model\Orm;
 use Nette\Application\UI\Form;
+use Nextras\Dbal\Utils\DateTimeImmutable;
 
 final class FilterFormFactory
 {
     public function __construct(private readonly Orm $orm) {}
 
-    public function create(string $workday, int $room): Form
+    public function create(DateTimeImmutable $date, int $room): Form
     {
         $form = new Form();
         $form->addDate('workday', 'Date')
             ->setRequired('Please fill the date')
-            ->setDefaultValue($workday);
+            ->setDefaultValue($date->format('d.m.Y'));
 
         $form->addSelect('room', 'Meeting room')
             ->setRequired('Please select a room')

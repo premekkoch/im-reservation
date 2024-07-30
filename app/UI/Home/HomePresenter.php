@@ -3,7 +3,7 @@
 namespace App\UI\Home;
 
 use App\Model\Orm;
-use DateTimeImmutable;
+use Nextras\Dbal\Utils\DateTimeImmutable;
 use Nette;
 use Nette\Application\Attributes\Persistent;
 use Nette\Application\UI\Form;
@@ -15,7 +15,7 @@ use Nette\Utils\ArrayHash;
 final class HomePresenter extends Nette\Application\UI\Presenter
 {
     #[Persistent]
-    public string $workday;
+    public int $day;
     #[Persistent]
     public int $roomId;
 
@@ -36,18 +36,20 @@ final class HomePresenter extends Nette\Application\UI\Presenter
         }
     }
 
-    public function actionDefault(?string $workday, ?int $roomId): void
+    public function actionDefault(?int $day, ?int $roomId): void
     {
-        $this->workday = $workday ?? (new DateTimeImmutable('now'))->format('Y-m-d');
+        $this->day = $day ?? (new DateTimeImmutable('now'))->getTimestamp();
         $this->roomId = $roomId ?? 1;
     }
 
     public function renderDefault(): void
     {
+        $this->template->date = (new DateTimeImmutable())->setTimestamp($this->day);
         $this->template->room = $this->orm->rooms->getByIdChecked($this->roomId);
+
         $this->template->reservations = $this->orm->reservations->findBy([
             'room' => $this->roomId,
-            'workday' => DateTimeImmutable::createFromFormat('Y-m-d', $this->workday)->setTime(0, 0),
+            'workday' => (new DateTimeImmutable())->setTimestamp($this->day)->setTime(0, 0),
         ])->orderBy('slot');
     }
 
@@ -65,7 +67,9 @@ final class HomePresenter extends Nette\Application\UI\Presenter
 
     protected function createComponentFilterForm(): Form
     {
-        $form = $this->filterFormFactory->create($this->workday, $this->roomId);
+        $date = (new DateTimeImmutable())->setTimestamp($this->day)->setTime(0, 0);
+
+        $form = $this->filterFormFactory->create($date, $this->roomId);
         $form->onSuccess[] = $this->onFilterFormSuccess(...);
 
         return $form;
@@ -73,6 +77,6 @@ final class HomePresenter extends Nette\Application\UI\Presenter
 
     private function onFilterFormSuccess(Form $form, ArrayHash $values): void
     {
-        $this->redirect('Home:default', $values->workday->format('Y-m-d'), $values->room);
+        $this->redirect('Home:default', $values->workday->getTimeStamp(), $values->room);
     }
 }
